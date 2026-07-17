@@ -1,0 +1,115 @@
+{
+	"$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+	"Name": "MyATxMouseControl",
+	"Version": "1.0.0.0",
+	"Author": "holgermilz",
+	"URL": "https://github.com/666mille/MyATxMouseControl",
+	"Description": "Control your ATK X1 Ultimate mouse right from the Stream Deck - battery level, DPI stages, polling rate and sensor firmware. No ATK HUB required.",
+	"Category": "ATxMouseControl",
+	"CategoryIcon": "imgs/category-icon",
+	"Icon": "imgs/plugin-icon",
+	"CodePath": "bin/plugin.js",
+	"SDKVersion": 2,
+	"Software": {
+		"MinimumVersion": "6.5"
+	},
+	"OS": [
+		{
+			"Platform": "windows",
+			"MinimumVersion": "10"
+		}
+	],
+	"Nodejs": {
+		"Version": "20"
+	},
+	"UUID": "com.holgermilz.myatxmousecontrol",
+	"Actions": [
+		{
+			"Name": "Battery",
+			"UUID": "com.holgermilz.myatxmousecontrol.battery",
+			"Icon": "imgs/actions/battery",
+			"Tooltip": "Shows the mouse battery level. Press to refresh immediately.",
+			"PropertyInspectorPath": "ui/battery.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/battery",
+					"TitleAlignment": "middle"
+				}
+			]
+		},
+		{
+			"Name": "DPI Switch",
+			"UUID": "com.holgermilz.myatxmousecontrol.dpi",
+			"Icon": "imgs/actions/dpi",
+			"Tooltip": "Cycles the mouse DPI stage and shows the current value.",
+			"PropertyInspectorPath": "ui/dpi.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/dpi",
+					"TitleAlignment": "middle"
+				}
+			]
+		},
+		{
+			"Name": "Sensor Firmware",
+			"UUID": "com.holgermilz.myatxmousecontrol.mode",
+			"Icon": "imgs/actions/mode",
+			"Tooltip": "Switches between Basic, Shard Competitive and MAX.",
+			"PropertyInspectorPath": "ui/mode.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/mode",
+					"TitleAlignment": "middle"
+				}
+			]
+		},
+		{
+			"Name": "Polling Rate",
+			"UUID": "com.holgermilz.myatxmousecontrol.polling",
+			"Icon": "imgs/actions/polling",
+			"Tooltip": "Cycles through the configured polling rates (125 Hz - 8 kHz).",
+			"PropertyInspectorPath": "ui/polling.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/polling",
+					"TitleAlignment": "middle"
+				}
+			]
+		},
+		{
+			"Name": "Mouse Dial",
+			"UUID": "com.holgermilz.myatxmousecontrol.dial",
+			"Icon": "imgs/actions/dial",
+			"Tooltip": "Push: switch mode (DPI/Polling/Sensor). Rotate: change value. Battery shown top right.",
+			"PropertyInspectorPath": "ui/dial.html",
+			"Controllers": [
+				"Encoder"
+			],
+			"Encoder": {
+				"layout": "layouts/mouse-dial.json",
+				"TriggerDescription": {
+					"Push": "Switch mode",
+					"Rotate": "Change value",
+					"Touch": "Refresh battery"
+				}
+			},
+			"States": [
+				{
+					"Image": "imgs/actions/dial"
+				}
+			]
+		}
+	]
+}

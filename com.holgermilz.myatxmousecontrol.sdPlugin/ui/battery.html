@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<script src="https://sdpi-components.dev/releases/v4/sdpi-components.js"></script>
+</head>
+<body>
+	<sdpi-item label="Show header">
+		<sdpi-checkbox setting="showHeader" default="true" label="Show text in top-left corner"></sdpi-checkbox>
+	</sdpi-item>
+	<sdpi-item label="Header text">
+		<sdpi-textfield setting="headerText" default="ATK" placeholder="ATK"></sdpi-textfield>
+	</sdpi-item>
+	<sdpi-item label="Color full">
+		<sdpi-color setting="colorHigh" default="#3ad35f"></sdpi-color>
+	</sdpi-item>
+	<sdpi-item label="Color medium">
+		<sdpi-color setting="colorMid" default="#ffb020"></sdpi-color>
+	</sdpi-item>
+	<sdpi-item label="Color low">
+		<sdpi-color setting="colorLow" default="#ff4040"></sdpi-color>
+	</sdpi-item>
+	<sdpi-item label="Color charging">
+		<sdpi-color setting="colorCharging" default="#40a0ff"></sdpi-color>
+	</sdpi-item>
+	<sdpi-item label="No dongle background">
+		<sdpi-color setting="bgNoDongle" default="#550000"></sdpi-color>
+	</sdpi-item>
+	<sdpi-item label="Background">
+		<sdpi-color setting="background" default="#1a1a1a"></sdpi-color>
+	</sdpi-item>
+	<sdpi-item label="Low below (%)">
+		<sdpi-range setting="lowBelow" min="5" max="50" step="5" default="20" showlabels></sdpi-range>
+	</sdpi-item>
+	<sdpi-item label="Medium below (%)">
+		<sdpi-range setting="midBelow" min="30" max="90" step="5" default="50" showlabels></sdpi-range>
+	</sdpi-item>
+</body>
+</html>

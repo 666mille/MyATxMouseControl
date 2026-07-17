@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<script src="https://sdpi-components.dev/releases/v4/sdpi-components.js"></script>
+</head>
+<body>
+	<sdpi-item label="Show header">
+		<sdpi-checkbox setting="showHeader" default="true" label="Show text in top-left corner"></sdpi-checkbox>
+	</sdpi-item>
+	<sdpi-item label="Header text">
+		<sdpi-textfield setting="headerText" default="ATK" placeholder="ATK"></sdpi-textfield>
+	</sdpi-item>
+	<sdpi-item label="Color">
+		<sdpi-color setting="color" default="#ffb020"></sdpi-color>
+	</sdpi-item>
+	<sdpi-item label="No dongle background">
+		<sdpi-color setting="bgNoDongle" default="#550000"></sdpi-color>
+	</sdpi-item>
+	<sdpi-item label="Background">
+		<sdpi-color setting="background" default="#1a1a1a"></sdpi-color>
+	</sdpi-item>
+	<sdpi-item label="Rates (cycle order)">
+		<sdpi-textfield setting="rates" default="1000,2000,4000,8000"
+			placeholder="e.g. 1000,4000,8000"></sdpi-textfield>
+	</sdpi-item>
+	<sdpi-item>
+		<div style="font-size: 11px; opacity: 0.7;">Allowed values: 125, 250, 500, 1000, 2000, 4000, 8000 (also 1k, 8k).</div>
+	</sdpi-item>
+</body>
+</html>

@@ -1,0 +1,6 @@
+node_modules/
+com.holgermilz.myatxmousecontrol.sdPlugin/bin/
+com.holgermilz.myatxmousecontrol.sdPlugin/logs/
+logs/
+*.streamDeckPlugin
+*.log
