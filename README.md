@@ -4,6 +4,8 @@ A Stream Deck plugin to control **ATK X1 Ultimate** wireless gaming mice (8K don
 
 The HID protocol was fully reverse-engineered for this project (EEPROM map, checksums, sensor-mode command) — see [Protocol](#protocol) below.
 
+![MyATxMouseControl on a Stream Deck +](assets/screenshot.png)
+
 ## Features
 
 | Action | What it does |
