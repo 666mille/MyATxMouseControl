@@ -1,6 +1,7 @@
 import { action, KeyDownEvent, SingletonAction, WillAppearEvent, WillDisappearEvent, DidReceiveSettingsEvent } from "@elgato/streamdeck";
 import { MouseState, requestImmediatePoll, SENSOR_MODES, setSensorMode, subscribeState } from "../atk-x1";
 import { noDongleSvg, svgUri, textTileSvg } from "../render";
+import { safe } from "../lifecycle";
 
 type ModeSettings = {
 	colorBasic?: string;
@@ -32,7 +33,7 @@ export class SensorModeAction extends SingletonAction<ModeSettings> {
 		this.unsubs.get(ev.action.id)?.();
 		this.unsubs.set(ev.action.id, subscribeState((state) => {
 			this.lastMode = state.sensorMode ?? this.lastMode;
-			void this.render(ev.action, state);
+			safe(this.render(ev.action, state), "sensor-mode render");
 		}));
 	}
 

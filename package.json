@@ -1,6 +1,6 @@
 {
   "name": "myatxmousecontrol",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Stream Deck plugin for ATK X1 Ultimate mouse (battery, DPI, polling rate, sensor mode)",
   "author": "holgermilz",
   "repository": "https://github.com/666mille/MyATxMouseControl",
@@ -9,11 +9,12 @@
   "scripts": {
     "build": "rollup -c && node scripts/copy-native.mjs",
     "watch": "rollup -c -w --watch.onEnd=\"streamdeck restart com.holgermilz.myatxmousecontrol\"",
-    "pack": "rollup -c && streamdeck pack com.holgermilz.myatxmousecontrol.sdPlugin"
+    "pack": "npm run build && streamdeck pack com.holgermilz.myatxmousecontrol.sdPlugin"
   },
   "dependencies": {
     "@elgato/streamdeck": "^1.2.1",
-    "node-hid": "^3.1.2"
+    "node-hid": "^3.1.2",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.0",

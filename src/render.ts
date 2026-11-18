@@ -3,10 +3,15 @@
  * Wird per setImage als data:image/svg+xml URI gesetzt.
  */
 
+/** Text fuer SVG escapen (Header-Text kommt frei aus den Settings). */
+export function escapeXml(text: string): string {
+	return text.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" })[c]!);
+}
+
 /** Kopfzeile oben links (wie "ATK" im Dial). Leerer Text = keine Kopfzeile. */
 function headerFragment(text: string): string {
 	if (!text) return "";
-	return `<text x="8" y="22" font-family="Segoe UI, sans-serif" font-size="16" font-weight="600" fill="#ffffff">${text}</text>`;
+	return `<text x="8" y="22" font-family="Segoe UI, sans-serif" font-size="16" font-weight="600" fill="#ffffff">${escapeXml(text)}</text>`;
 }
 
 /** "Zzz" oben rechts - Maus schlaeft, Anzeige zeigt letzten bekannten Wert. */

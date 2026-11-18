@@ -1,7 +1,7 @@
 {
 	"$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
 	"Name": "MyATxMouseControl",
-	"Version": "1.0.0.0",
+	"Version": "1.0.1.0",
 	"Author": "holgermilz",
 	"URL": "https://github.com/666mille/MyATxMouseControl",
 	"Description": "Control your ATK X1 Ultimate mouse right from the Stream Deck - battery level, DPI stages, polling rate and sensor firmware. No ATK HUB required.",

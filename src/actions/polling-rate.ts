@@ -1,6 +1,7 @@
 import { action, KeyDownEvent, SingletonAction, WillAppearEvent, WillDisappearEvent, DidReceiveSettingsEvent } from "@elgato/streamdeck";
 import { formatHz, MouseState, POLLING_HZ_TO_VALUE, requestImmediatePoll, setPollingRate, subscribeState } from "../atk-x1";
 import { noDongleSvg, svgUri, textTileSvg } from "../render";
+import { safe } from "../lifecycle";
 
 type PollSettings = {
 	color?: string;
@@ -27,7 +28,7 @@ export class PollingRateAction extends SingletonAction<PollSettings> {
 		this.unsubs.get(ev.action.id)?.();
 		this.unsubs.set(ev.action.id, subscribeState((state) => {
 			this.lastHz = state.pollingHz ?? this.lastHz;
-			void this.render(ev.action, state);
+			safe(this.render(ev.action, state), "polling-rate render");
 		}));
 	}
 

@@ -95,6 +95,7 @@ Battery command `0x04` returns the level in byte 6 and a wired/charging flag in 
 - **`NO DONGLE`** - receiver not found. Check the USB connection.
 - **Values don't change** - make sure ATK HUB is closed.
 - Logs: `%appdata%\Elgato\StreamDeck\Plugins\com.holgermilz.myatxmousecontrol.sdPlugin\logs`
+- **`node20.exe` error on Windows shutdown** - since v1.0.1 the plugin exits on its own as soon as the Stream Deck software closes. Every start and shutdown is written to `logs\lifecycle.log` with its process ID. A clean session ends with `Shutdown: ...` and `exit, code 0`; if the last session ends without these lines, the plugin did not shut down cleanly.
 
 ## Credits
 

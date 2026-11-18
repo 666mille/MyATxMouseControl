@@ -10,6 +10,7 @@
  * serialisiert - kein Locking noetig.
  */
 import { createRequire } from "node:module";
+import { isShuttingDown, onShutdown } from "./lifecycle";
 
 // node-hid ist ein natives Modul. Wir laden es zur Laufzeit per require,
 // damit ein Ladefehler (fehlende node_modules, falsche Architektur, ...)
@@ -71,11 +72,22 @@ export type DpiStage = { index: number; dpi: number; color: string };
 // Low-Level
 // ------------------------------------------------------------------ //
 
+/** USB-Enumeration - darf nie werfen (beim Herunterfahren/Abstecken
+ *  kann hidapi hier Fehler liefern). */
+function findDevice(): import("node-hid").Device | undefined {
+	if (!HID || isShuttingDown()) return undefined;
+	try {
+		return HID.devices(VENDOR_ID, PRODUCT_ID).find(
+			(d) => d.usagePage === USAGE_PAGE && d.usage === USAGE,
+		);
+	} catch (e) {
+		console.log(`[hid] devices() fehlgeschlagen: ${e}`);
+		return undefined;
+	}
+}
+
 function findPath(): string | undefined {
-	if (!HID) return undefined;
-	return HID.devices(VENDOR_ID, PRODUCT_ID).find(
-		(d) => d.usagePage === USAGE_PAGE && d.usage === USAGE,
-	)?.path;
+	return findDevice()?.path;
 }
 
 function buildCmd(cmdId: number, addr = 0, data: number[] = []): number[] {
@@ -119,9 +131,19 @@ function transact(
  * Gibt null zurueck, wenn der Dongle nicht gefunden wird.
  */
 function withDevice<T>(fn: (dev: HidDevice) => T | null): T | null {
+	if (isShuttingDown()) return null;
 	const path = findPath();
 	if (!path || !HID) return null;
-	const dev = new HID.HID(path);
+	let dev: HidDevice;
+	try {
+		// Kann werfen, wenn der Dongle gerade verschwindet (Abstecken,
+		// Standby, Herunterfahren) oder ATK HUB das Interface blockiert.
+		// Frueher lag das AUSSERHALB des try -> uncaughtException im Timer.
+		dev = new HID.HID(path);
+	} catch (e) {
+		console.log(`[hid] open fehlgeschlagen: ${e}`);
+		return null;
+	}
 	try {
 		// Alte, nicht abgeholte Reports verwerfen
 		while (true) {
@@ -155,10 +177,7 @@ export function isDongleConnected(): boolean {
 
 /** USB-Produktname des Dongles (soweit vom Hersteller gesetzt). */
 export function getDongleInfo(): { product: string; manufacturer: string } | null {
-	if (!HID) return null;
-	const d = HID.devices(VENDOR_ID, PRODUCT_ID).find(
-		(d) => d.usagePage === USAGE_PAGE && d.usage === USAGE,
-	);
+	const d = findDevice();
 	if (!d) return null;
 	return { product: d.product ?? "?", manufacturer: d.manufacturer ?? "?" };
 }
@@ -177,6 +196,7 @@ export function subscribeDongleWatch(cb: (present: boolean) => void): () => void
 	if (!dongleTimer) {
 		donglePresent = isDongleConnected();
 		dongleTimer = setInterval(() => {
+			if (isShuttingDown()) return;
 			const now = isDongleConnected();
 			if (now !== donglePresent) {
 				donglePresent = now;
@@ -395,8 +415,27 @@ function readFullState(): MouseState {
 	return res ?? emptyState(true);
 }
 
+/** EIN Timer-Handle fuer den gesamten Poller. Frueher erzeugte jeder
+ *  requestImmediatePoll() ein eigenes, nicht gespeichertes setTimeout ->
+ *  bei schnellen Tastendruecken / mehreren Actions liefen mehrere
+ *  Poll-Ketten parallel und vervielfachten den HID-Verkehr. */
+function schedulePoll(delay: number): void {
+	if (stateTimer) clearTimeout(stateTimer);
+	stateTimer = null;
+	if (isShuttingDown() || stateSubscribers.size === 0) return;
+	stateTimer = setTimeout(runStatePoll, delay);
+}
+
 function runStatePoll(): void {
-	const state = readFullState();
+	stateTimer = null;
+	if (isShuttingDown() || stateSubscribers.size === 0) return;
+	let state: MouseState;
+	try {
+		state = readFullState();
+	} catch (e) {
+		console.log(`[poll] readFullState fehlgeschlagen: ${e}`);
+		state = emptyState(isDongleConnected());
+	}
 	// Letzte bekannte Werte fortschreiben
 	if (state.battery !== null) remembered.battery = state.battery;
 	if (state.stageIndex !== null) remembered.stageIndex = state.stageIndex;
@@ -411,25 +450,48 @@ function runStatePoll(): void {
 	const delay = !state.dongle ? POLL_NO_DONGLE_MS
 		: (state.battery !== null || state.stageIndex !== null) ? POLL_OK_MS
 		: POLL_ASLEEP_MS;
-	stateTimer = setTimeout(runStatePoll, delay);
+	// Nur neu planen, wenn nicht schon jemand (requestImmediatePoll aus
+	// einem Subscriber heraus) einen frueheren Poll angesetzt hat.
+	if (!stateTimer) schedulePoll(delay);
 }
 
 /** Snapshot-Abo. Beim ersten Abonnenten startet der Poller; der aktuelle
  *  Stand wird (falls vorhanden) sofort geliefert. */
+let stopDongleWatch: (() => void) | null = null;
+
 export function subscribeState(cb: (state: MouseState) => void): () => void {
 	stateSubscribers.add(cb);
-	if (stateSubscribers.size === 1 && !stateTimer) {
-		// Dongle-Watcher intern: An-/Abstecken loest Sofort-Poll aus
-		subscribeDongleWatch(() => requestImmediatePoll());
-		setTimeout(runStatePoll, 0);
+	if (!stopDongleWatch) {
+		// Erster Abonnent: Dongle-Watcher + Poller starten
+		stopDongleWatch = subscribeDongleWatch(() => requestImmediatePoll());
+		schedulePoll(0);
 	} else if (lastState) {
 		try { cb(lastState); } catch { /* egal */ }
 	}
-	return () => { stateSubscribers.delete(cb); };
+	return () => {
+		stateSubscribers.delete(cb);
+		if (stateSubscribers.size === 0) stopPolling();
+	};
 }
 
-/** Sofortiger Voll-Refresh fuer alle Abonnenten (z.B. nach Tastendruck). */
-export function requestImmediatePoll(): void {
-	if (stateTimer) { clearTimeout(stateTimer); stateTimer = null; }
-	setTimeout(runStatePoll, 0);
+/** Letzter Abonnent weg (oder Shutdown): alles anhalten. */
+function stopPolling(): void {
+	if (stateTimer) clearTimeout(stateTimer);
+	stateTimer = null;
+	stopDongleWatch?.();
+	stopDongleWatch = null;
 }
+
+/** Sofortiger Voll-Refresh fuer alle Abonnenten (z.B. nach Tastendruck).
+ *  Mehrfachaufrufe werden zu EINEM Poll zusammengefasst. */
+export function requestImmediatePoll(): void {
+	schedulePoll(0);
+}
+
+// Beim Beenden keine Timer und keine HID-Zugriffe mehr.
+onShutdown(() => {
+	stateSubscribers.clear();
+	dongleSubscribers.clear();
+	stopPolling();
+	if (dongleTimer) { clearInterval(dongleTimer); dongleTimer = null; }
+});

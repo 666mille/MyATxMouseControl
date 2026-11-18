@@ -1,6 +1,7 @@
 import streamDeck, { action, KeyDownEvent, SingletonAction, WillAppearEvent, WillDisappearEvent, DidReceiveSettingsEvent } from "@elgato/streamdeck";
 import { MouseState, requestImmediatePoll, subscribeState } from "../atk-x1";
 import { batterySvg, noDongleSvg, pickBatteryColor, svgUri } from "../render";
+import { safe } from "../lifecycle";
 
 type BatterySettings = {
 	colorHigh?: string;
@@ -35,7 +36,7 @@ export class BatteryAction extends SingletonAction<BatterySettings> {
 	override async onWillAppear(ev: WillAppearEvent<BatterySettings>): Promise<void> {
 		this.settingsByContext.set(ev.action.id, ev.payload.settings);
 		this.unsubs.get(ev.action.id)?.();
-		this.unsubs.set(ev.action.id, subscribeState((state) => void this.render(ev.action, state)));
+		this.unsubs.set(ev.action.id, subscribeState((state) => safe(this.render(ev.action, state), "battery render")));
 	}
 
 	override onWillDisappear(ev: WillDisappearEvent<BatterySettings>): void {

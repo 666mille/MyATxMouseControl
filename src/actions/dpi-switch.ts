@@ -1,6 +1,7 @@
 import { action, KeyDownEvent, SingletonAction, WillAppearEvent, WillDisappearEvent, DidReceiveSettingsEvent } from "@elgato/streamdeck";
 import { MouseState, nextStage, requestImmediatePoll, subscribeState } from "../atk-x1";
 import { dpiSvg, noDongleSvg, svgUri } from "../render";
+import { safe } from "../lifecycle";
 
 type DpiSettings = {
 	useMouseColors?: boolean;
@@ -27,7 +28,7 @@ export class DpiSwitchAction extends SingletonAction<DpiSettings> {
 	override async onWillAppear(ev: WillAppearEvent<DpiSettings>): Promise<void> {
 		this.settingsByContext.set(ev.action.id, ev.payload.settings);
 		this.unsubs.get(ev.action.id)?.();
-		this.unsubs.set(ev.action.id, subscribeState((state) => void this.render(ev.action, state)));
+		this.unsubs.set(ev.action.id, subscribeState((state) => safe(this.render(ev.action, state), "dpi-switch render")));
 	}
 
 	override onWillDisappear(ev: WillDisappearEvent<DpiSettings>): void {

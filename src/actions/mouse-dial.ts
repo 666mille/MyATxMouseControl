@@ -19,6 +19,8 @@ import {
 	setSensorMode,
 	subscribeState,
 } from "../atk-x1";
+import { safe } from "../lifecycle";
+import { escapeXml } from "../render";
 
 type DialSettings = {
 	colorDpi?: string;
@@ -57,7 +59,7 @@ function displaySvg(
 ): string {
 	const barWidth = Math.max(0, Math.min(180, 180 * (barPct / 100)));
 	const headerSvg = header
-		? `<text x="5" y="20" font-family="sans-serif" font-size="15" font-weight="600" fill="#ffffff" text-anchor="start">${header}</text>`
+		? `<text x="5" y="20" font-family="sans-serif" font-size="15" font-weight="600" fill="#ffffff" text-anchor="start">${escapeXml(header)}</text>`
 		: "";
 	const zzzSvg = zzz
 		? `<text x="65" y="38" font-family="sans-serif" font-size="17" font-weight="700" fill="#808080" text-anchor="start">Zzz</text>`
@@ -101,7 +103,7 @@ export class MouseDialAction extends SingletonAction<DialSettings> {
 		this.unsubs.get(dial.id)?.();
 		this.unsubs.set(dial.id, subscribeState((state) => {
 			this.lastState = state;
-			void this.render(dial, state);
+			safe(this.render(dial, state), "mouse-dial render");
 		}));
 	}
 
